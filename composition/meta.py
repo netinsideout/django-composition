@@ -4,8 +4,7 @@ from django.utils.itercompat import is_iterable
 from composition.trigger import Trigger
 
 class CompositionMeta(object):
-    def __init__(self, model, field, name, trigger,\
-                  commons, commit, update_method):#TODO: remove commit param
+    def __init__(self, model, field, name, trigger, commons, commit, update_method):#TODO: remove commit param
         self.model = model
         self.name = name
         self.trigger = []
@@ -56,11 +55,12 @@ class CompositionMeta(object):
         self.update_method = update_method_defaults
 
         setattr(model, self.update_method["name"], lambda instance: self._update_method(instance))
-        setattr(model, "freeze_%s" % name, lambda instance: self._freeze_method(instance))
+        setattr(model, "freeze_%s" % name, lambda instance: self.set_freeze(True))
+        setattr(model, "unfreeze_%s" % name, lambda instance: self.set_freeze(False))
 
-    def toggle_freeze(self):
+    def set_freeze(self, value):
         for t in self.trigger:
-            t.freeze = not t.freeze
+            t.freeze = value
 
     def _update_method(self, instance):
         """
@@ -90,8 +90,3 @@ class CompositionMeta(object):
 
         instance.save()
 
-    def _freeze_method(self, instance):
-        """
-            Generic `freeze_FOO` method that is connected to model
-        """
-        self.toggle_freeze()

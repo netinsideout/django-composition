@@ -68,8 +68,7 @@ class CompositionField(object):
 
     def create_meta(self, cls):
         return CompositionMeta(
-            cls, self._c_native, self._c_name, self._c_trigger,\
-            self._c_commons, self._c_commit, self._c_update_method
+            cls, self._c_native, self._c_name, self._c_trigger, self._c_commons, self._c_commit, self._c_update_method
         )
 
     def deferred_contribute_to_class(self, sender, **kwargs):
@@ -81,3 +80,12 @@ class CompositionField(object):
 
     def introspect_class(self, cls):
         pass
+
+    def south_field_triple(self):
+        """Returns a suitable description of this field for South."""
+        # We'll just introspect the _actual_ field.
+        from south.modelsinspector import introspector
+        field_class = self._c_native.__class__.__module__ + "." + self._c_native.__class__.__name__
+        args, kwargs = introspector(self._c_native)
+        # That's our definition!
+        return (field_class, args, kwargs)
