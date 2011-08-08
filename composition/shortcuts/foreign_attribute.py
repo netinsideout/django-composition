@@ -1,7 +1,5 @@
 from copy import deepcopy
-
 from django.db import models
-from django.db.models.related import RelatedObject
 from django.db.models.related import RelatedObject
 
 from composition.base import CompositionField
