@@ -3,12 +3,10 @@ from django.db import models
 from composition.meta import CompositionMeta
 
 class CompositionField(object):
-    def __init__(self, native, trigger=None, commons={},\
-                     commit=True, update_method={}):
-        self.internal_init(native, trigger, commons, commit, update_method)
+    def __init__(self, native, trigger=None, commons={}, update_method={}):
+        self.internal_init(native, trigger, commons, update_method)
 
-    def internal_init(self, native=None, trigger=None, commons={},\
-                     commit=True, update_method={}):
+    def internal_init(self, native=None, trigger=None, commons={}, update_method={}):
         """
             CompositionField class that patches native field
             with custom `contribute_to_class` method
@@ -51,7 +49,6 @@ class CompositionField(object):
 
         self._c_trigger = trigger
         self._c_commons = commons
-        self._c_commit = commit
         self._c_update_method = update_method
 
     def contribute_to_class(self, cls, name):
@@ -68,7 +65,7 @@ class CompositionField(object):
 
     def create_meta(self, cls):
         return CompositionMeta(
-            cls, self._c_native, self._c_name, self._c_trigger, self._c_commons, self._c_commit, self._c_update_method
+            cls, self._c_native, self._c_name, self._c_trigger, self._c_commons, self._c_update_method
         )
 
     def deferred_contribute_to_class(self, sender, **kwargs):

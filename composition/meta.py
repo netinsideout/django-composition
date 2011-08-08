@@ -4,7 +4,7 @@ from django.utils.itercompat import is_iterable
 from composition.trigger import Trigger
 
 class CompositionMeta(object):
-    def __init__(self, model, field, name, trigger, commons, commit, update_method):#TODO: remove commit param
+    def __init__(self, model, field, name, trigger, commons, update_method):
         self.model = model
         self.name = name
         self.trigger = []

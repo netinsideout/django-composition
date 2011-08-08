@@ -10,7 +10,6 @@ def _connect_trigger(sender, **kwargs):
        model = models.get_model(*trigger.sender_model.split('.', 1))
        if model:
            trigger.sender = model
-           trigger.sender_model = model
            trigger.wait_connect = False
            trigger.connect()
            connected.append(trigger)
@@ -25,22 +24,20 @@ class Trigger(object):
         self.freeze = False
         self.field_name = field_name
         self.commit = commit
+        #sender has priority
+        if sender is not None:
+            sender_model = sender
 
-        if sender_model and not sender:
-            if isinstance(sender_model, basestring):
-                model = models.get_model(*sender_model.split(".", 1))
+        #waiting for models defined as strings
+        if isinstance(sender_model, basestring):
+            model = models.get_model(*sender_model.split(".", 1))
+            if model is None:
+               self.wait_connect = True
+               _wait_triggers.append(self)
+            else:
+               sender_model = model
 
-                if model is None:
-                   self.wait_connect = True
-                   _wait_triggers.append(self)
-                else:
-                   sender = sender_model = model
-
-            self.sender = sender
-            self.sender_model = sender_model
-        else:
-            self.sender = sender
-            self.sender_model = sender_model
+        self.sender = sender_model
 
         if not do:
             raise ValueError("`do` action not defined for trigger")
@@ -57,7 +54,8 @@ class Trigger(object):
            Connects trigger's handler to all of its signals
         """
         for signal in self.on:
-            signal.connect(self.handler, sender=self.sender)
+            if self.sender is not None:
+                signal.connect(self.handler, sender=self.sender)
 
     def handler(self, signal, instance=None, **kwargs):
         """
@@ -72,6 +70,6 @@ class Trigger(object):
 
         for obj in objects:
             if obj:
-                setattr(obj, self.field_name, self.do(obj, instance, signal))
+                setattr(obj, self.field_name, self.do(obj, instance, signal, kwargs))
                 if self.commit:
                     obj.save()

@@ -2,6 +2,7 @@ from copy import deepcopy
 
 from django.db import models
 from django.db.models.related import RelatedObject
+from django.db.models.related import RelatedObject
 
 from composition.base import CompositionField
 
@@ -92,14 +93,13 @@ class ForeignAttributeField(CompositionField):
                 dict(
                     on=(models.signals.post_save, models.signals.post_delete),
                     sender_model=related_models_chain[-1],
-                    do=lambda holder, foreign, signal: getattr(foreign, bits[-1]),
+                    do=lambda holder, foreign, signal, kwargs: getattr(foreign, bits[-1]),
                     field_holder_getter=lambda foreign: get_root_instances(foreign, related_names_chain[:])
                 ),
                 dict(
                     on=models.signals.pre_save,
                     sender_model=related_models_chain[0],
-                    do=lambda holder, _, signal: get_leaf_instance(holder, bits[:]),
-                    commit=False, # to prevent recursion `save` method call
+                    do=lambda holder, _, signal, kwargs: get_leaf_instance(holder, bits[:]),
                 )
             ],
             update_method=dict(
