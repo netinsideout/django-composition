@@ -4,7 +4,12 @@ from django.db import models
 class ForeignCountField(CompositionField):
     def __init__(self, model, link_back_name, link_to_foreign_name, filter=None, native=None, signal=None, verbose_name=None):
         self.model = model
-        self.do = lambda object, foreign, signal, kwargs: getattr(object, link_to_foreign_name).filter(filter).count()
+        if isinstance(filter, dict):
+            self.do = lambda object, foreign, signal, kwargs: getattr(object, link_to_foreign_name).filter(**filter).count()
+        elif filter is not None:
+            self.do = lambda object, foreign, signal, kwargs: getattr(object, link_to_foreign_name).filter(filter).count()
+        else:
+            self.do = lambda object, foreign, signal, kwargs: getattr(object, link_to_foreign_name).count()
         self.link_back_name = link_back_name
         self.native = native or models.PositiveIntegerField(default=0, db_index=True, verbose_name=verbose_name)
         self.signal = signal or (models.signals.post_save, models.signals.post_delete)
