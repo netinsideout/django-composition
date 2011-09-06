@@ -1,13 +1,16 @@
 from composition.base import CompositionField
 from django.db import models
+from types import FunctionType
 
 class ForeignCountField(CompositionField):
     def __init__(self, model, link_back_name, link_to_foreign_name, filter=None, native=None, signal=None, verbose_name=None):
         self.model = model
         if isinstance(filter, dict):
             self.do = lambda object, foreign, signal, kwargs: getattr(object, link_to_foreign_name).filter(**filter).count()
-        elif filter is not None:
+        elif isinstance(filter, object):
             self.do = lambda object, foreign, signal, kwargs: getattr(object, link_to_foreign_name).filter(filter).count()
+        elif isinstance(filter, FunctionType):
+            self.do = filter
         else:
             self.do = lambda object, foreign, signal, kwargs: getattr(object, link_to_foreign_name).count()
         self.link_back_name = link_back_name
