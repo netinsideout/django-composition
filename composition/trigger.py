@@ -26,18 +26,18 @@ class Trigger(object):
         self.commit = commit
         #sender has priority
         if sender is not None:
-            sender_model = sender
+            self.sender_model = sender
 
         #waiting for models defined as strings
         if isinstance(sender_model, basestring):
-            model = models.get_model(*sender_model.split(".", 1))
+            model = models.get_model(*self.sender_model.split(".", 1))
             if model is None:
                self.wait_connect = True
                _wait_triggers.append(self)
             else:
-               sender_model = model
+                self.sender_model = model
 
-        self.sender = sender_model
+        self.sender = self.sender_model
 
         if not do:
             raise ValueError("`do` action not defined for trigger")
