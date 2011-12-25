@@ -2,21 +2,15 @@ from django.db import models
 from django.utils.itercompat import is_iterable
 from django.db.models.signals import class_prepared
 
-_wait_triggers = []
+_wait_triggers = {}
 
 def _connect_trigger(sender, **kwargs):
-   connected = []
-   for trigger in _wait_triggers:
-       model = models.get_model(*trigger.sender_model.split('.', 1))
-       if model:
-           trigger.sender = model
-           trigger.wait_connect = False
-           trigger.connect()
-           connected.append(trigger)
-
-   for trigger in connected:
-       _wait_triggers.remove(trigger)
-
+   if sender.__name__ in _wait_triggers.keys():
+       trigger = _wait_triggers[sender.__name__]
+       trigger.sender = sender
+       trigger.wait_connect = False
+       trigger.connect()
+       del _wait_triggers[sender.__name__]
 class_prepared.connect(_connect_trigger)
 
 class Trigger(object):
@@ -24,20 +18,21 @@ class Trigger(object):
         self.freeze = False
         self.field_name = field_name
         self.commit = commit
+        self.wait_connect = False
         #sender has priority
         if sender is not None:
-            self.sender_model = sender
+            sender_model = sender
 
         #waiting for models defined as strings
         if isinstance(sender_model, basestring):
-            model = models.get_model(*self.sender_model.split(".", 1))
+            model = models.get_model(*sender_model.split(".", 1), seed_cache=False)
             if model is None:
                self.wait_connect = True
-               _wait_triggers.append(self)
+               _wait_triggers[sender_model.split(".", 1)[1]] = self
             else:
-                self.sender_model = model
+                sender_model = model
 
-        self.sender = self.sender_model
+        self.sender = sender_model
 
         if not do:
             raise ValueError("`do` action not defined for trigger")

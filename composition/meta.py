@@ -34,7 +34,8 @@ class CompositionMeta(object):
             trigger_meta.update(t)
 
             trigger_obj = Trigger(**trigger_meta)
-            trigger_obj.connect()
+            if trigger_obj.wait_connect is False:
+                trigger_obj.connect()
 
             self.trigger.append(trigger_obj)
 
