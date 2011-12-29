@@ -4,7 +4,7 @@ from types import FunctionType
 from django.db.models.query_utils import Q
 
 class ForeignCountField(CompositionField):
-    def __init__(self, model, link_back_name, link_to_foreign_name, filter=None, native=None, signal=None, verbose_name=None):
+    def __init__(self, model, link_back_name, link_to_foreign_name, filter=None, native=None, signal=None, verbose_name=None, commit=True):
         self.model = model
         if isinstance(filter, dict):
             self.do = lambda object, foreign, signal, kwargs: getattr(object, link_to_foreign_name).filter(**filter).count()
@@ -24,7 +24,8 @@ class ForeignCountField(CompositionField):
                 on = self.signal,
                 sender_model = self.model,
                 do = self.do,
-                field_holder_getter = self.instance_getter
+                field_holder_getter = self.instance_getter,
+                commit = commit
             )
         )
 

@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.itercompat import is_iterable
 from django.db.models.signals import class_prepared
+from django.core.exceptions import ObjectDoesNotExist
 
 _wait_triggers = {}
 
@@ -59,7 +60,11 @@ class Trigger(object):
         if self.freeze:
             return
 
-        objects = self.field_holder_getter(instance)
+        try:
+            objects = self.field_holder_getter(instance)
+        except ObjectDoesNotExist:
+            return
+
         if not is_iterable(objects):
             objects = [objects]
 
